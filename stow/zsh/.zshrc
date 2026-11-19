@@ -132,7 +132,6 @@ export NVM_DIR="$HOME/.nvm"
 export DOTNET_ROOT="$HOME/.dotnet"
 [ -x "$DOTNET_ROOT/dotnet" ] && export PATH="$DOTNET_ROOT:$DOTNET_ROOT/tools:$PATH"
 
-alias cursor="$HOME/apps/cursor.AppImage --no-sandbox"
 # removed rust: export PATH="$HOME/.cargo/bin:$PATH"
 
 # Load Angular CLI autocompletion.

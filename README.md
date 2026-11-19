@@ -23,7 +23,7 @@ cd ~/dotfiles
 |---|---|---|
 | `stow/zsh` | `.zshrc`, `.zshenv`, `.p10k.zsh`, `.bashrc`, `.profile` | symlinked (GNU Stow) |
 | `stow/git` | `.gitconfig` | symlinked |
-| `stow/vscode`, `stow/cursor`, `stow/zed` | editor settings, keybindings, snippets, VS Code MCP servers | symlinked |
+| `stow/vscode`, `stow/zed` | editor settings, keybindings, snippets, VS Code MCP servers | symlinked |
 | `stow/warp` | Warp terminal `settings.toml` | symlinked |
 | `stow/desktop` | Wayland helper scripts, the `focus-allowlist` Shell extension, the Flameshot D-Bus override | symlinked |
 | `configs/` | Flameshot and Crow Translate configs | copied if absent (these apps rewrite their files) |

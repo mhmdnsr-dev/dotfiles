@@ -89,10 +89,5 @@
   "workbench.colorCustomizations": {},
   "workbench.colorTheme": "Webstorm New Dark",
   "workbench.iconTheme": "material-icon-theme",
-  "xml.server.preferBinary": true,
-  "yaml.schemas": {
-    "file:///home/nasr/.vscode/extensions/continue.continue-1.2.10-linux-x64/config-yaml-schema.json": [
-      ".continue/**/*.yaml"
-    ]
-  }
+  "xml.server.preferBinary": true
 }
