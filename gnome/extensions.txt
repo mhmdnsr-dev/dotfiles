@@ -1,0 +1,3 @@
+clipboard-indicator@tudmotu.com
+horizontal-workspace-indicator@tty2.io
+smile-extension@mijorus.it

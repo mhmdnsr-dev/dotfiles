@@ -1,89 +1,85 @@
 #!/usr/bin/env bash
-# Install this GNOME Wayland desktop setup for the current user. Safe to re-run.
-# - Scripts, the focus-allowlist extension and the Flameshot D-Bus override are SYMLINKED
-#   to this repo (edit in place, then commit).
-# - Flameshot and Crow configs are COPIED only if absent (those apps rewrite their files).
-# - Existing files that would be replaced are kept as *.pre-dotfiles.
+# Install this desktop setup for the current user. Safe to re-run.
+#   ./install.sh               # dotfiles, shell framework, GNOME settings + extensions
+#   ./install.sh --packages    # also reinstall apt/flatpak/snap/VS Code packages (sudo)
+#
+# stow/<pkg>/  mirrors $HOME and is SYMLINKED with GNU Stow (edit in place, then commit).
+# configs/     app configs the apps rewrite themselves: COPIED only if absent.
+# gnome/       dconf settings (loaded), extension list (installed), local patches (applied).
+# Files that would be replaced are kept as *.pre-dotfiles.
 set -euo pipefail
 REPO=$(cd "$(dirname "$0")" && pwd)
 EXT_DIR=$HOME/.local/share/gnome-shell/extensions
-CI_UUID=clipboard-indicator@tudmotu.com
-CI_VERSION=74
-
 say() { printf '\033[1m==> %s\033[0m\n' "$*"; }
 
-link() { # link <repo-path> <target>
-  local src=$REPO/$1 dst=$2
-  mkdir -p "$(dirname "$dst")"
-  if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$src" ]; then return; fi
-  if [ -e "$dst" ] || [ -L "$dst" ]; then mv "$dst" "$dst.pre-dotfiles"; echo "   kept old $dst as .pre-dotfiles"; fi
-  ln -s "$src" "$dst"; echo "   linked $dst"
-}
-
-copy_if_absent() { # copy_if_absent <repo-path> <target>
-  local dst=$2
-  if [ -e "$dst" ]; then echo "   exists, left as is: $dst"; return; fi
-  mkdir -p "$(dirname "$dst")"; cp "$REPO/$1" "$dst"; echo "   copied $dst"
-}
-
-say "Checking packages"
-missing=()
-for pkg in xclip wl-clipboard flameshot crow-translate tesseract-ocr python3-gi; do
-  dpkg -s "$pkg" >/dev/null 2>&1 || missing+=("$pkg")
+for cmd in stow git dconf gdbus; do
+  command -v "$cmd" >/dev/null || { echo "missing '$cmd': sudo apt install stow git dconf-cli libglib2.0-bin"; exit 1; }
 done
-if [ ${#missing[@]} -gt 0 ]; then
-  echo "   missing: ${missing[*]}"
-  echo "   install with: sudo apt install ${missing[*]}"
+
+if [ "${1:-}" = --packages ]; then
+  say "Packages"
+  bash "$REPO/packages/restore.sh"
 fi
 
-say "Scripts -> ~/.local/bin"
-for f in "$REPO"/bin/*; do link "bin/$(basename "$f")" "$HOME/.local/bin/$(basename "$f")"; done
+say "oh-my-zsh, plugins, powerlevel10k"
+[ -d "$HOME/.oh-my-zsh" ] || git clone -q --depth 1 https://github.com/ohmyzsh/ohmyzsh "$HOME/.oh-my-zsh"
+ZC=$HOME/.oh-my-zsh/custom
+clone() { [ -d "$2" ] || { git clone -q --depth 1 "$1" "$2" && echo "   cloned $(basename "$2")"; }; }
+clone https://github.com/zsh-users/zsh-autosuggestions        "$ZC/plugins/zsh-autosuggestions"
+clone https://github.com/zsh-users/zsh-syntax-highlighting    "$ZC/plugins/zsh-syntax-highlighting"
+clone https://github.com/MichaelAquilina/zsh-you-should-use   "$ZC/plugins/you-should-use"
+clone https://github.com/romkatv/powerlevel10k                "$ZC/themes/powerlevel10k"
 
-say "Focus Allowlist extension (raises Crow when GNOME refuses its focus request)"
-link gnome-shell/extensions/focus-allowlist@local "$EXT_DIR/focus-allowlist@local"
+say "Dotfiles (GNU Stow)"
+for pkg in "$REPO"/stow/*/; do
+  pkg=$(basename "$pkg")
+  # Move real files that are in the way aside, so stow can link.
+  while IFS= read -r rel; do
+    dst=$HOME/$rel
+    if [ -e "$dst" ] && [ ! -L "$dst" ]; then mv "$dst" "$dst.pre-dotfiles"; echo "   kept old ~/$rel as .pre-dotfiles"; fi
+  done < <(cd "$REPO/stow/$pkg" && find . -type f -o -type l | sed 's#^\./##')
+  stow --no-folding --restow -d "$REPO/stow" -t "$HOME" "$pkg"
+  echo "   $pkg"
+done
 
-say "Flameshot (XWayland D-Bus override: spans all monitors, copy-to-clipboard works)"
-link flameshot/org.flameshot.Flameshot.service "$HOME/.local/share/dbus-1/services/org.flameshot.Flameshot.service"
-copy_if_absent flameshot/flameshot.ini "$HOME/.config/flameshot/flameshot.ini"
-
-say "Crow Translate"
-copy_if_absent crow-translate/crow-translate.conf "$HOME/.config/crow-translate/crow-translate.conf"
+say "App configs (copied if absent)"
+copy_if_absent() {
+  if [ -e "$2" ]; then echo "   exists, left as is: $2"; else mkdir -p "$(dirname "$2")"; cp "$REPO/$1" "$2"; echo "   copied $2"; fi
+}
+copy_if_absent configs/flameshot/flameshot.ini            "$HOME/.config/flameshot/flameshot.ini"
+copy_if_absent configs/crow-translate/crow-translate.conf "$HOME/.config/crow-translate/crow-translate.conf"
 mkdir -p "$HOME/.config/autostart"
-sed "s#@HOME@#$HOME#g" "$REPO/crow-translate/io.crow_translate.CrowTranslate.desktop.in" \
+sed "s#@HOME@#$HOME#g" "$REPO/configs/crow-translate/io.crow_translate.CrowTranslate.desktop.in" \
   > "$HOME/.config/autostart/io.crow_translate.CrowTranslate.desktop"
-echo "   autostart entry written"
 
-say "Clipboard Indicator v$CI_VERSION + local patch"
-if [ ! -d "$EXT_DIR/$CI_UUID" ]; then
-  echo "   installing from extensions.gnome.org (accept the GNOME prompt)"
+say "GNOME extensions"
+while read -r uuid; do
+  [ -z "$uuid" ] && continue
+  if [ -d "$EXT_DIR/$uuid" ]; then echo "   installed: $uuid"; continue; fi
+  echo "   installing $uuid (accept the GNOME prompt)"
   gdbus call --session --dest org.gnome.Shell.Extensions --object-path /org/gnome/Shell/Extensions \
-    --method org.gnome.Shell.Extensions.InstallRemoteExtension "$CI_UUID" >/dev/null 2>&1 || true
-fi
-if [ -f "$EXT_DIR/$CI_UUID/extension.js" ]; then
-  ver=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["version"])' "$EXT_DIR/$CI_UUID/metadata.json")
-  if grep -q 'LOCAL PATCH' "$EXT_DIR/$CI_UUID/extension.js"; then
-    echo "   already patched"
-  elif [ "$ver" = "$CI_VERSION" ]; then
-    cp "$EXT_DIR/$CI_UUID/extension.js" "$EXT_DIR/$CI_UUID/extension.js.orig"
-    patch -s -d "$EXT_DIR/$CI_UUID" -p1 < "$REPO/gnome-shell/patches/clipboard-indicator-v$CI_VERSION.patch"
-    echo "   patched (original kept as extension.js.orig)"
-  else
-    echo "   installed version is v$ver, patch targets v$CI_VERSION: skipped, re-port the patch"
-  fi
-else
-  echo "   not installed yet: re-run this script after accepting the install prompt"
-fi
+    --method org.gnome.Shell.Extensions.InstallRemoteExtension "$uuid" >/dev/null 2>&1 || true
+done < "$REPO/gnome/extensions.txt"
 
-say "Enabling extensions"
-enabled=$(gsettings get org.gnome.shell enabled-extensions)
-for uuid in "$CI_UUID" focus-allowlist@local; do
-  case "$enabled" in *"'$uuid'"*) ;; *)
-    if [ "$enabled" = "@as []" ] || [ "$enabled" = "[]" ]; then enabled="['$uuid']"; else enabled="${enabled%]}, '$uuid']"; fi ;;
-  esac
+# Local patches: gnome/patches/<extension-name>-v<version>.patch
+for patch in "$REPO"/gnome/patches/*.patch; do
+  [ -e "$patch" ] || continue
+  name=$(basename "$patch" .patch); want=${name##*-v}; ext=${name%-v*}
+  dir=$(ls -d "$EXT_DIR/$ext@"* 2>/dev/null | head -1 || true)
+  [ -n "$dir" ] && [ -f "$dir/extension.js" ] || { echo "   $ext not installed yet: re-run after accepting the prompt"; continue; }
+  have=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["version"])' "$dir/metadata.json")
+  if grep -q 'LOCAL PATCH' "$dir/extension.js"; then echo "   $ext: already patched"
+  elif [ "$have" = "$want" ]; then
+    cp "$dir/extension.js" "$dir/extension.js.orig"; patch -s -d "$dir" -p1 < "$patch"; echo "   $ext: patched"
+  else echo "   $ext is v$have, patch targets v$want: skipped (re-port the patch)"; fi
 done
-gsettings set org.gnome.shell enabled-extensions "$enabled"
 
-say "GNOME settings"
-bash "$REPO/gnome/settings.sh"
+say "GNOME settings (dconf)"
+for ini in "$REPO"/gnome/dconf/*.ini; do
+  name=$(basename "$ini" .ini)
+  path=/org/gnome/${name//+//}/          # file names encode '/' as '+': desktop+wm.ini -> desktop/wm
+  sed "s#@HOME@#$HOME#g" "$ini" | dconf load "$path"
+  echo "   $path"
+done
 
-say "Done. Log out and back in so GNOME loads the extensions."
+say "Done. Log out and back in so GNOME loads extensions and settings."

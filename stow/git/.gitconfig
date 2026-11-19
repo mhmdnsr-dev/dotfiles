@@ -1,0 +1,7 @@
+[user]
+	name = Mohamed Nasr
+	email = 100061737+mhmdnsr-dev@users.noreply.github.com
+[init]
+	defaultBranch = main
+[core]
+	pager = less -FX

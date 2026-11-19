@@ -1,0 +1,98 @@
+{
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[python]": {
+    "editor.formatOnType": true
+  },
+  "bootstrapAutocomplete.version": "5.3",
+  "breadcrumbs.enabled": false,
+  "chat.mcp.access": "all",
+  "chat.mcp.gallery.enabled": true,
+  "chat.tools.terminal.enableAutoApprove": false,
+  "chat.viewSessions.orientation": "stacked",
+  "claudeCode.selectedModel": "opus",
+  "claudeCode.useTerminal": true,
+  "debug.javascript.autoAttachFilter": "disabled",
+  "diffEditor.ignoreTrimWhitespace": false,
+  "diffEditor.wordWrap": "on",
+  "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.definitionLinkOpensInPeek": true,
+  "editor.experimental.pasteActions.enabled": true,
+  "editor.fontFamily": "'Ubuntu Mono', 'Patrick Hand', 'Courgette'",
+  "editor.fontLigatures": false,
+  "editor.fontSize": 15,
+  "editor.formatOnSaveMode": "modifications",
+  "editor.inlineSuggest.suppressSuggestions": true,
+  "editor.insertSpaces": false,
+  "editor.linkedEditing": true,
+  "editor.minimap.enabled": false,
+  "editor.quickSuggestions": {
+    "strings": "on"
+  },
+  "editor.renderControlCharacters": false,
+  "editor.renderWhitespace": "none",
+  "editor.tabSize": 2,
+  "editor.wordWrap": "on",
+  "emojisense.languages": {
+    "git-commit": true,
+    "markdown": true,
+    "plaintext": {
+      "emojiDecoratorsEnabled": true,
+      "markupCompletionsEnabled": true
+    },
+    "scminput": true
+  },
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "extensions.autoCheckUpdates": false,
+  "extensions.autoUpdate": "off",
+  "files.autoSave": "onFocusChange",
+  "git.autoRepositoryDetection": false,
+  "git.autofetch": true,
+  "git.autorefresh": false,
+  "git.confirmSync": false,
+  "git.enableStatusBarSync": false,
+  "github.copilot.chat.planAgent.additionalTools": [],
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "gitlens.hovers.currentLine.over": "line",
+  "kilo-code.new.showTaskTimeline": false,
+  "launch": {
+    "compounds": [],
+    "configurations": []
+  },
+  "liveServer.settings.CustomBrowser": "blisk",
+  "liveServer.settings.donotShowInfoMsg": true,
+  "redhat.telemetry.enabled": true,
+  "remote.SSH.remotePlatform": {
+    "sandbox.rf8ywj.csb": "linux"
+  },
+  "roo-cline.allowedCommands": [
+    "git log",
+    "git diff",
+    "git show"
+  ],
+  "roo-cline.deniedCommands": [],
+  "security.workspace.trust.enabled": false,
+  "security.workspace.trust.untrustedFiles": "newWindow",
+  "tabnine.experimentalAutoImports": true,
+  "terminal.integrated.commandsToSkipShell": [
+    "kilo-code.new.agentManagerOpen",
+    "kilo-code.new.agentManager.showTerminal"
+  ],
+  "terminal.integrated.fontFamily": "monospace",
+  "window.menuBarVisibility": "compact",
+  "workbench.colorCustomizations": {},
+  "workbench.colorTheme": "Webstorm New Dark",
+  "workbench.iconTheme": "material-icon-theme",
+  "xml.server.preferBinary": true,
+  "yaml.schemas": {
+    "file:///home/nasr/.vscode/extensions/continue.continue-1.2.10-linux-x64/config-yaml-schema.json": [
+      ".continue/**/*.yaml"
+    ]
+  }
+}

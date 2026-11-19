@@ -1,0 +1,28 @@
+{
+  "autosave": "on_window_change",
+  "prettier": {
+    "allowed": true
+  },
+  "format_on_save": "modifications_if_available",
+  "icon_theme": "Catppuccin Latte",
+  "theme": "JetBrains Islands Dark",
+  "project_panel": {
+    "dock": "left"
+  },
+  "outline_panel": {
+    "dock": "left"
+  },
+  "collaboration_panel": {
+    "dock": "left"
+  },
+  "agent": {
+    "dock": "right",
+    "favorite_models": [],
+    "model_parameters": []
+  },
+  "git_panel": {
+    "dock": "left"
+  },
+  "context_servers": {
+  }
+}
