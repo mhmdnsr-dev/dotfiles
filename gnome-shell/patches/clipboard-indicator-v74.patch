@@ -1,0 +1,50 @@
+--- a/extension.js
++++ b/extension.js
+@@ -1708,6 +1708,20 @@
+         this.preventIndicatorUpdate = true;
+         this.#updateClipboard(menuItem.entry);
+         this._pastingKeypressTimeout = setTimeout(() => {
++            // LOCAL PATCH (image paste): images can't be pasted with Shift/Ctrl+Shift+Insert
++            // (terminals paste text only). Send Ctrl+V so apps like Claude Code read the image
++            // from the clipboard themselves, and keep the image on the clipboard (no restore),
++            // otherwise the app's async clipboard read races the 50 ms restore below.
++            if (menuItem.entry.isImage()) {
++                this.keyboard.press(Clutter.KEY_Control_L);
++                this.keyboard.press(Clutter.KEY_v);
++                this.keyboard.release(Clutter.KEY_v);
++                this.keyboard.release(Clutter.KEY_Control_L);
++                this._pastingResetTimeout = setTimeout(() => {
++                    this.preventIndicatorUpdate = false;
++                }, 50);
++                return;
++            }
+             if (this.keyboard.purpose === Clutter.InputContentPurpose.TERMINAL) {
+                 this.keyboard.press(Clutter.KEY_Control_L);
+                 this.keyboard.press(Clutter.KEY_Shift_L);
+@@ -2014,7 +2028,15 @@
+         ];
+ 
+         for (let type of mimetypes) {
+-            let result = await new Promise(resolve => this.extension.clipboard.get_content(CLIPBOARD_TYPE, type, (clipBoard, bytes) => {
++            // LOCAL PATCH (hang guard): an XWayland owner (xclip, Flameshot) may never answer a
++            // request for a type it doesn't offer; without a timeout #refreshInProgress stays true
++            // and the extension silently stops recording all later copies.
++            let result = await new Promise(_resolve => {
++                let done = false;
++                const resolve = v => { if (!done) { done = true; _resolve(v); } };
++                setTimeout(() => resolve(null), 1000);
++                this.extension.clipboard.get_content(CLIPBOARD_TYPE, type, (clipBoard, bytes) => {
++                if (done) return;
+                 if (bytes === null || bytes.get_size() === 0) {
+                     resolve(null);
+                     return;
+@@ -2031,7 +2053,8 @@
+                     this.registry.writeEntryFile(entry);
+                 }
+                 resolve(entry);
+-            }));
++            });
++            });
+ 
+             if (result) {
+                 if (!CACHE_IMAGES && result.isImage()) {

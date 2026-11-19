@@ -1,0 +1,4 @@
+*.pre-dotfiles
+*.orig
+*.bak
+*.traineddata

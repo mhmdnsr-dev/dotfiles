@@ -1,0 +1,7 @@
+{
+  "uuid": "focus-allowlist@local",
+  "name": "Focus Allowlist (local)",
+  "description": "Lets only allow-listed apps (Crow Translate) bring their window to the front when they ask for focus. All other apps keep GNOME's focus-stealing protection.",
+  "shell-version": ["50"],
+  "version": 1
+}

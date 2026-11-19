@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Local shim: on GNOME (no data-control protocol) the real wl-copy briefly maps a
+# window to grab focus, which flashes on screen. Claude Code's select-to-copy runs
+# `wl-copy` and `wl-copy --primary` with text on stdin; route those to xclip
+# (XWayland clipboard bridge, no window). Anything else falls through to wl-copy.
+# xclip keeps a background process to own the selection: detach its stdout/stderr
+# so callers that capture output (Claude Code) don't wait on the pipe.
+REAL=/usr/bin/wl-copy
+if [ -n "$DISPLAY" ] && command -v xclip >/dev/null 2>&1; then
+  case "$*" in
+    "")                exec xclip -selection clipboard >/dev/null 2>&1 ;;
+    "-p"|"--primary")  exec xclip -selection primary   >/dev/null 2>&1 ;;
+  esac
+fi
+exec "$REAL" "$@"

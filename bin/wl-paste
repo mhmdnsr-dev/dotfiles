@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Local shim: on GNOME (no data-control protocol) the real wl-paste briefly maps a
+# window to grab focus, which flashes on screen. Claude Code calls wl-paste on Ctrl+V,
+# so answer its two read patterns via xclip (XWayland clipboard bridge, no window).
+# Anything else, or no xclip, falls through to the real wl-paste.
+REAL=/usr/bin/wl-paste
+if [ -n "$DISPLAY" ] && command -v xclip >/dev/null 2>&1; then
+  case "$1" in
+    -l|--list-types)
+      [ $# -eq 1 ] && exec xclip -selection clipboard -t TARGETS -o ;;
+    -t|--type)
+      [ $# -eq 2 ] && exec xclip -selection clipboard -t "$2" -o ;;
+  esac
+fi
+exec "$REAL" "$@"

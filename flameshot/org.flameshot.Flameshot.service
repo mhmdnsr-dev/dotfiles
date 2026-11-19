@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=org.flameshot.Flameshot
+# Local override: run under XWayland so the overlay spans all monitors and copy-to-clipboard
+# works on GNOME Wayland (native Wayland mode can't set the clipboard here).
+Exec=/usr/bin/env QT_QPA_PLATFORM=xcb /usr/bin/flameshot
