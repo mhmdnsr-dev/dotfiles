@@ -21,7 +21,7 @@ cd ~/dotfiles
 
 | Path | What | How it's applied |
 |---|---|---|
-| `stow/zsh` | `.zshrc`, `.zshenv`, `.p10k.zsh`, `.bashrc`, `.profile` | symlinked (GNU Stow) |
+| `stow/zsh` | `.zshrc`, `.zshenv`, `.bashrc`, `.profile` | symlinked (GNU Stow) |
 | `stow/git` | `.gitconfig` | symlinked |
 | `stow/vscode`, `stow/zed` | editor settings, keybindings, snippets, VS Code MCP servers | symlinked |
 | `stow/warp` | Warp terminal `settings.toml` | symlinked |
@@ -32,8 +32,8 @@ cd ~/dotfiles
 | `gnome/patches/` | local fixes for third-party extensions | applied when the version matches |
 | `packages/` | apt, Flatpak, snap and VS Code extension lists | `packages/restore.sh` (opt-in) |
 
-Oh-my-zsh, zsh-autosuggestions, zsh-syntax-highlighting, you-should-use and powerlevel10k are
-cloned by `install.sh`, not vendored.
+Oh-my-zsh, zsh-autosuggestions, zsh-syntax-highlighting and you-should-use are cloned by
+`install.sh`, not vendored.
 
 ## Keeping it current
 

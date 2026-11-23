@@ -8,12 +8,12 @@
 # gnome/       dconf settings (loaded), extension list (installed), local patches (applied).
 # Files that would be replaced are kept as *.pre-dotfiles.
 set -euo pipefail
-REPO=$(cd "$(dirname "$0")" && pwd)
+REPO=$(cd "$(dirname "$0")" && pwd -P)
 EXT_DIR=$HOME/.local/share/gnome-shell/extensions
 say() { printf '\033[1m==> %s\033[0m\n' "$*"; }
 
-for cmd in stow git dconf gdbus; do
-  command -v "$cmd" >/dev/null || { echo "missing '$cmd': sudo apt install stow git dconf-cli libglib2.0-bin"; exit 1; }
+for cmd in stow git dconf gdbus python3 patch; do
+  command -v "$cmd" >/dev/null || { echo "missing '$cmd': sudo apt install stow git dconf-cli libglib2.0-bin python3 patch"; exit 1; }
 done
 
 if [ "${1:-}" = --packages ]; then
@@ -21,22 +21,24 @@ if [ "${1:-}" = --packages ]; then
   bash "$REPO/packages/restore.sh"
 fi
 
-say "oh-my-zsh, plugins, powerlevel10k"
+say "oh-my-zsh and plugins"
 [ -d "$HOME/.oh-my-zsh" ] || git clone -q --depth 1 https://github.com/ohmyzsh/ohmyzsh "$HOME/.oh-my-zsh"
 ZC=$HOME/.oh-my-zsh/custom
 clone() { [ -d "$2" ] || { git clone -q --depth 1 "$1" "$2" && echo "   cloned $(basename "$2")"; }; }
 clone https://github.com/zsh-users/zsh-autosuggestions        "$ZC/plugins/zsh-autosuggestions"
 clone https://github.com/zsh-users/zsh-syntax-highlighting    "$ZC/plugins/zsh-syntax-highlighting"
 clone https://github.com/MichaelAquilina/zsh-you-should-use   "$ZC/plugins/you-should-use"
-clone https://github.com/romkatv/powerlevel10k                "$ZC/themes/powerlevel10k"
 
 say "Dotfiles (GNU Stow)"
 for pkg in "$REPO"/stow/*/; do
   pkg=$(basename "$pkg")
-  # Move real files that are in the way aside, so stow can link.
+  # Move files and foreign symlinks that are in the way aside, so stow can link.
   while IFS= read -r rel; do
     dst=$HOME/$rel
-    if [ -e "$dst" ] && [ ! -L "$dst" ]; then mv "$dst" "$dst.pre-dotfiles"; echo "   kept old ~/$rel as .pre-dotfiles"; fi
+    if [ -L "$dst" ]; then
+      case "$(readlink -f "$dst")" in "$REPO"/*) continue ;; esac   # already ours
+    fi
+    if [ -e "$dst" ] || [ -L "$dst" ]; then mv "$dst" "$dst.pre-dotfiles"; echo "   kept old ~/$rel as .pre-dotfiles"; fi
   done < <(cd "$REPO/stow/$pkg" && find . -type f -o -type l | sed 's#^\./##')
   stow --no-folding --restow -d "$REPO/stow" -t "$HOME" "$pkg"
   echo "   $pkg"

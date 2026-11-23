@@ -36,7 +36,10 @@ ls /snap 2>/dev/null | grep -vE '^(bin|README|snapd|bare|core[0-9]*|gnome-[0-9-]
 command -v code >/dev/null && code --list-extensions 2>/dev/null | sort > "$REPO/packages/vscode-extensions.txt" || true
 
 # ---- App configs those apps rewrite themselves (copied, not stowed).
-cp "$HOME/.config/flameshot/flameshot.ini" "$REPO/configs/flameshot/flameshot.ini"
+if [ -f "$HOME/.config/flameshot/flameshot.ini" ]; then
+  cp "$HOME/.config/flameshot/flameshot.ini" "$REPO/configs/flameshot/flameshot.ini"
+else echo "   no Flameshot config, kept the repo copy"; fi
+[ -f "$HOME/.config/crow-translate/crow-translate.conf" ] && \
 python3 -I - "$HOME/.config/crow-translate/crow-translate.conf" "$REPO/configs/crow-translate/crow-translate.conf" <<'PY'
 import sys
 src, dst = sys.argv[1:3]
@@ -52,6 +55,7 @@ PY
 E=$HOME/.local/share/gnome-shell/extensions/clipboard-indicator@tudmotu.com
 if [ -f "$E/extension.js.orig" ]; then
   ver=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["version"])' "$E/metadata.json")
+  rm -f "$REPO"/gnome/patches/clipboard-indicator-v*.patch   # keep only the current version's patch
   diff -u --label a/extension.js --label b/extension.js "$E/extension.js.orig" "$E/extension.js" \
     > "$REPO/gnome/patches/clipboard-indicator-v$ver.patch" || true
 fi
