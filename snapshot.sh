@@ -54,10 +54,9 @@ PY
 # ---- Clipboard Indicator local patch.
 E=$HOME/.local/share/gnome-shell/extensions/clipboard-indicator@tudmotu.com
 if [ -f "$E/extension.js.orig" ]; then
-  ver=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["version"])' "$E/metadata.json")
-  rm -f "$REPO"/gnome/patches/clipboard-indicator-v*.patch   # keep only the current version's patch
+  # One version-agnostic patch (applies to v71 on 24.04 and v74 on 26.04 with no fuzz).
   diff -u --label a/extension.js --label b/extension.js "$E/extension.js.orig" "$E/extension.js" \
-    > "$REPO/gnome/patches/clipboard-indicator-v$ver.patch" || true
+    > "$REPO/gnome/patches/clipboard-indicator.patch" || true
 fi
 
 # ---- Guard: nothing secret-looking or home-path-bearing in the generated copies.

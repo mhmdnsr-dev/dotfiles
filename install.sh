@@ -63,17 +63,19 @@ while read -r uuid; do
     --method org.gnome.Shell.Extensions.InstallRemoteExtension "$uuid" >/dev/null 2>&1 || true
 done < "$REPO/gnome/extensions.txt"
 
-# Local patches: gnome/patches/<extension-name>-v<version>.patch
+# Local patches: gnome/patches/<extension-name>.patch. Versions differ per GNOME release
+# (Ubuntu 24.04 gets Clipboard Indicator v71, 26.04 gets v74), so instead of pinning a version,
+# apply only if the patch fits exactly (no fuzz); otherwise skip and say so.
 for patch in "$REPO"/gnome/patches/*.patch; do
   [ -e "$patch" ] || continue
-  name=$(basename "$patch" .patch); want=${name##*-v}; ext=${name%-v*}
+  ext=$(basename "$patch" .patch)
   dir=$(ls -d "$EXT_DIR/$ext@"* 2>/dev/null | head -1 || true)
   [ -n "$dir" ] && [ -f "$dir/extension.js" ] || { echo "   $ext not installed yet: re-run after accepting the prompt"; continue; }
   have=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["version"])' "$dir/metadata.json")
-  if grep -q 'LOCAL PATCH' "$dir/extension.js"; then echo "   $ext: already patched"
-  elif [ "$have" = "$want" ]; then
-    cp "$dir/extension.js" "$dir/extension.js.orig"; patch -s -d "$dir" -p1 < "$patch"; echo "   $ext: patched"
-  else echo "   $ext is v$have, patch targets v$want: skipped (re-port the patch)"; fi
+  if grep -q 'LOCAL PATCH' "$dir/extension.js"; then echo "   $ext v$have: already patched"
+  elif patch --dry-run -s --fuzz=0 -d "$dir" -p1 < "$patch" >/dev/null 2>&1; then
+    cp "$dir/extension.js" "$dir/extension.js.orig"; patch -s --fuzz=0 -d "$dir" -p1 < "$patch"; echo "   $ext v$have: patched"
+  else echo "   $ext v$have: patch does not fit this version, skipped (re-port gnome/patches/$ext.patch)"; fi
 done
 
 say "GNOME settings (dconf)"

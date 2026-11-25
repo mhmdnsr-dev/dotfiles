@@ -1,8 +1,22 @@
 # dotfiles
 
-My Ubuntu 26.04 / GNOME 50 (Wayland) setup: shell, editors, terminal, GNOME settings and
+My Ubuntu GNOME (Wayland) setup: shell, editors, terminal, GNOME settings and
 extensions, packages, and a set of fixes that make clipboard, screenshot and translation
 tools behave on Wayland.
+
+## Supported
+
+| | Ubuntu 26.04 (GNOME 50) | Ubuntu 24.04 (GNOME 46) |
+|---|---|---|
+| Status | daily driver, fully tested | supported, checked against 24.04's versions |
+| Clipboard Indicator | v74, patched | v71, same patch applies exactly |
+| Flameshot / Crow Translate | 13.3 / 2.11 | 12.1 / 2.11 |
+
+Notes for 24.04:
+- `packages/apt.txt` comes from 26.04; `restore.sh` skips packages 24.04 doesn't have.
+- Some dconf keys are GNOME 50 only, such as mutter's `xwayland-native-scaling`
+  (GNOME 47+). GNOME 46 ignores them.
+- Ptyxis isn't 24.04's default terminal, so its settings simply sit unused.
 
 ## Install on a new machine
 
@@ -66,10 +80,12 @@ and it lacks the *data-control* protocol that clipboard CLIs use.
 
 - **[Clipboard Indicator](https://extensions.gnome.org/extension/779/clipboard-indicator/)**
   runs inside GNOME Shell, so it can open at the pointer and paste without `ydotool`.
-  [`gnome/patches/`](gnome/patches/) adds two fixes:
-  1. **Image paste:** for images, send `Ctrl+V` and keep the image on the clipboard.
-     Upstream uses text-only `Shift+Insert` and restores the old item after 50 ms.
-  2. **Hang guard:** a 1 s timeout per clipboard-format request. An XWayland owner that
+  [`gnome/patches/`](gnome/patches/) adds three fixes:
+  1. **Image paste:** for images, send `Ctrl+V` instead of upstream's text-only `Shift+Insert`.
+  2. **No restore after paste:** upstream puts the previous item back 50 ms after pasting.
+     Apps that read the clipboard late (VS Code, Chrome, Discord) then paste that previous
+     item instead of the one you picked. The picked item now stays on the clipboard.
+  3. **Hang guard:** a 1 s timeout per clipboard-format request. An XWayland owner that
      never answers otherwise stops all recording, without any error.
 - **`wl-copy` / `wl-paste` wrappers:** without data-control, the real tools briefly map a
   window (a flash at the screen edge). The wrappers route the simple calls Claude Code makes
@@ -83,7 +99,8 @@ and it lacks the *data-control* protocol that clipboard CLIs use.
 
 ## Caveats
 
-- Extension updates overwrite local patches. `install.sh` says so; re-port the patch.
+- Extension updates overwrite local patches. Re-run `install.sh`: it re-applies the patch if it
+  still fits exactly, and otherwise says it skipped it, so the patch needs re-porting.
 - If an app saves settings by replacing the file, its symlink becomes a real file again.
   Check occasionally with `cd ~/dotfiles && stow -n --no-folding -d stow -t ~ $(ls stow)`.
   It prints nothing when every link is intact and names any file that has been replaced. Copy
