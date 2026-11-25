@@ -4,6 +4,11 @@ My Ubuntu GNOME (Wayland) setup: shell, editors, terminal, GNOME settings and
 extensions, packages, and a set of fixes that make clipboard, screenshot and translation
 tools behave on Wayland.
 
+**Full documentation: [docs/](docs/README.md)**. It covers [architecture](docs/architecture.md),
+[new machine setup](docs/new-machine.md), [maintenance](docs/maintenance.md),
+[Wayland fixes](docs/wayland-fixes.md), [troubleshooting](docs/troubleshooting.md),
+[security](docs/security.md), [packages](docs/packages.md) and the [decision log](docs/decisions.md).
+
 ## Supported
 
 | | Ubuntu 26.04 (GNOME 50) | Ubuntu 24.04 (GNOME 46) |
