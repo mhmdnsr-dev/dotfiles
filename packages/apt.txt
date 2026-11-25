@@ -15,6 +15,7 @@ containerd.io
 crow-translate
 curl
 dash
+ddcutil
 diffutils
 discord
 docker-buildx-plugin

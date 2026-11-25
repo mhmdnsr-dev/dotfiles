@@ -21,7 +21,23 @@
              if (this.keyboard.purpose === Clutter.InputContentPurpose.TERMINAL) {
                  this.keyboard.press(Clutter.KEY_Control_L);
                  this.keyboard.press(Clutter.KEY_Shift_L);
-@@ -2014,7 +2028,15 @@
+@@ -1723,10 +1737,13 @@
+                 this.keyboard.release(Clutter.KEY_Shift_L);
+             }
+ 
++            // LOCAL PATCH (text paste race): upstream restores the previously selected item
++            // 50 ms after the keypress. Apps that read the clipboard asynchronously (Electron:
++            // VS Code, Chrome, Discord) often read after that and paste the *previous* item.
++            // Keep the chosen item on the clipboard instead (like CopyQ).
++            void currentlySelected;
+             this._pastingResetTimeout = setTimeout(() => {
+                 this.preventIndicatorUpdate = false;
+-                if (currentlySelected && currentlySelected.entry)
+-                    this.#updateClipboard(currentlySelected.entry);
+             }, 50);
+         }, 50);
+     }
+@@ -2014,7 +2031,15 @@
          ];
  
          for (let type of mimetypes) {
@@ -38,7 +54,7 @@
                  if (bytes === null || bytes.get_size() === 0) {
                      resolve(null);
                      return;
-@@ -2031,7 +2053,8 @@
+@@ -2031,7 +2056,8 @@
                      this.registry.writeEntryFile(entry);
                  }
                  resolve(entry);
